@@ -169,7 +169,7 @@
 	fillcolor[4].push_back(cb.lightcolor(fillcolor[3][4]));
 	fillstyle[4].push_back(1001);
 
-	// scanners 6-13
+	// scanners 6-15
 	// colors based on http://colorbrewer2.org/, six classes, qualitative, second scheme
 	makeNewPlotStyle("#1b9e77"); // sea green
 	makeNewPlotStyle("#d95f02"); // dark orange
@@ -180,15 +180,19 @@
 	makeNewPlotStyle("#a6761d"); // chocolate
 	makeNewPlotStyle("#e31a1c"); // red
   makeNewPlotStyle("#984ea3"); // darkish purple
+	makeNewPlotStyle("",kBlue-5); // same as 1D scan 1
+	makeNewPlotStyle("",kGreen-8); // same as 1D scan 2
 
-	// if requested, remove any fill pattern to make cleaner plots
-	if ( arg->isQuickhack(10) ){
-		for ( int iScanners=0; iScanners<fillstyle.size(); iScanners++ ){
-			for ( int iContours=0; iContours<fillstyle[iScanners].size(); iContours++ ){
-				fillstyle[iScanners][iContours] = 1001;
-			}
-		}
-	}
+	// if requested, add or remove any fill pattern to make cleaner plots
+  for ( int iContour=0; iContour<fillstyle.size(); iContour++ ) {
+    for ( int iScanner=0; iScanner<fillstyle[iContour].size(); iScanner++ ) {
+      // remove any fill style at all
+      if ( arg->isQuickhack(10) ) fillstyle[iContour][iScanner] = 1001;
+      if ( iScanner < arg->fillstyle.size() ) fillstyle[iContour][iScanner] = arg->fillstyle[iScanner];
+      //cout << iContour << " " << iScanner << " " << linecolor[iContour][iScanner] << " " << linestyle[iContour][iScanner] << " " << fillcolor[iContour][iScanner] << " " << fillstyle[iContour][iScanner] << endl;
+    }
+  }
+
 }
 
 ///
@@ -199,13 +203,14 @@
 /// \param htmlColor - an HTML color, e.g. "#e6ab02". If ROOT is provided,
 /// the new scanner will be based on a predefined ROOT color.
 ///
-void OneMinusClPlot2d::makeNewPlotStyle(TString htmlColor)
+void OneMinusClPlot2d::makeNewPlotStyle(TString htmlColor, int ROOTColor)
 {
 	int currentNumberOfStyles = linecolor[0].size();
 	// get index of new color. Either use the provided HTML color, or
 	// take a predefined ROOT color.
 	int newColor;
 	if ( htmlColor.EqualTo("ROOT") ) newColor = currentNumberOfStyles;
+	else if ( ROOTColor > 0 ) newColor = ROOTColor;
 	else newColor = TColor::GetColor(htmlColor);
 	markerstyle.push_back(20);
 	markersize.push_back(1.1);
@@ -231,6 +236,7 @@ void OneMinusClPlot2d::makeNewPlotStyle(TString htmlColor)
 	linestyle[4].push_back(kSolid);
 	fillcolor[4].push_back(cb.darklightcolor(fillcolor[3][currentNumberOfStyles],thisMuchDarker));
 	fillstyle[4].push_back(1001);
+
 }
 
 ///
@@ -248,7 +254,7 @@ void OneMinusClPlot2d::addScanner(MethodAbsScan* s)
 		histosType.push_back(kPvalue);
 		histos.push_back(s->getHCL2d());
 	}
-	if ( arg->smooth2d ) histos[histos.size()-1]->Smooth();
+	if ( arg->smooth2d ) for ( int i=0; i<arg->nsmooth; i++ ) { histos[histos.size()-1]->Smooth(); }
 	title = s->getTitle();
 	m_contours.push_back(0);
 	m_contours_computed.push_back(false);
@@ -265,7 +271,7 @@ void OneMinusClPlot2d::addFile(TString fName)
 		return;
 	}
 	histos.push_back(hCL);
-	if ( arg->smooth2d ) histos[histos.size()-1]->Smooth();
+	if ( arg->smooth2d ) for ( int i=0; i<arg->nsmooth; i++ ) { histos[histos.size()-1]->Smooth(); }
 	histosType.push_back(kPvalue);
 	m_contours.push_back(0);
 	m_contours_computed.push_back(false);
@@ -296,11 +302,15 @@ bool OneMinusClPlot2d::hasHistoType(histogramType t)
 ///
 /// Draw a line stating the CL content of the contours.
 ///
-void OneMinusClPlot2d::drawCLcontent()
+void OneMinusClPlot2d::drawCLcontent(bool isFull)
 {
 	float xLow, yLow;
 	xLow = 0.17;
 	yLow = 0.15;
+  if ( isFull ) {
+    xLow = 0.11;
+    yLow = 0.11;
+  }
 	TPaveText *t1 = new TPaveText(xLow, yLow, xLow+0.20, yLow+0.125, "BRNDC");
 	t1->SetBorderSize(0);
 	t1->SetFillStyle(0);
@@ -308,6 +318,7 @@ void OneMinusClPlot2d::drawCLcontent()
 	t1->SetTextFont(font);
 	t1->SetTextSize(labelsize*0.6);
 	t1->SetTextColor(kGray+1);
+  if ( isFull ) t1->SetTextColor( kRed );
 	TString text;
 	text = "contours hold ";
 	if ( arg->plot2dcl[0]>0 || (histos.size()==1 && hasHistoType(kPvalue)) ){
@@ -356,6 +367,23 @@ void OneMinusClPlot2d::DrawFull()
 	hChi2->GetZaxis()->SetRangeUser(zMin,zMax);
 	hChi2->GetZaxis()->SetTitle(histosType[0]==kChi2?"#Delta#chi^{2}":"p-value");
 	hChi2->Draw("colz");
+
+  // draw contours if requested
+  ConfidenceContours* cont = new ConfidenceContours(arg);
+  cont->computeContours(histos[0], histosType[0], 0);
+  vector<int> linecolor { kRed, kRed, kRed, kRed, kRed };
+  //vector<int> linestyle { kDashed, kDashed, kDashed, kDashed, kDashed };
+  vector<int> linestyle { 1, 2, 3, 4, 5 };
+  TColor *col = gROOT->GetColor(0);
+  col->SetAlpha(1.);
+  vector<int> fillcolor { 0, 0, 0, 0, 0 };
+  vector<int> fillstyle { 0, 0, 0, 0, 0 };
+  cont->setStyle( linecolor, linestyle, fillcolor, fillstyle );
+  cont->setTransparency( 1. );
+  cont->Draw();
+
+	if ( !arg->isQuickhack(15) ) drawCLcontent(true);
+
 	TPaveText *title = new TPaveText(.10,.92,.90,.99,"BRNDC");
 	title->AddText(Form("%s for %s",histosType[0]==kChi2?"#Delta#chi^{2}":"p-value",scanners[0]->getTitle().Data()));
 	title->SetBorderSize(0);
@@ -386,6 +414,7 @@ void OneMinusClPlot2d::drawLegend()
 	m_legend->SetBorderSize(0);
 	m_legend->SetTextFont(font);
 	m_legend->SetTextSize(legendsize);
+  if ( arg->isQuickhack(26) ) m_legend->SetTextSize(0.9*legendsize);
 
 	// build legend
 	for ( int i = 0; i < histos.size(); i++ ){
@@ -398,7 +427,7 @@ void OneMinusClPlot2d::drawLegend()
 			int styleId = i;
 			if ( arg->color.size()>i ) styleId = arg->color[i];
 			TGraph *g = new TGraph(1);
-			g->SetFillStyle(1001); // solid
+			g->SetFillStyle(fillstyle[0][i]); // solid
 			g->SetFillColor(fillcolor[0][styleId]);
 			g->SetLineWidth(2);
 			g->SetLineColor(linecolor[0][styleId]);
@@ -408,7 +437,7 @@ void OneMinusClPlot2d::drawLegend()
 			g->SetMarkerSize(markersize[styleId]);
 			TString options = "f";
 			if ( scanners[i]->getDrawSolution() ) options += "p"; // only plot marker symbol when solutions are plotted
-			m_legend->AddEntry(g, scanners[i]->getTitle(), options);
+			if ( scanners[i]->getTitle() != "noleg" ) m_legend->AddEntry(g, scanners[i]->getTitle(), options);
 		}
 	}
 	m_legend->Draw();
@@ -483,7 +512,7 @@ void OneMinusClPlot2d::Draw()
 		cont->computeContours(histos[i], histosType[i], i);
 		int styleId = i;
 		if ( arg->color.size()>i ) styleId = arg->color[i];
-		cont->setStyle(transpose(linecolor)[styleId], transpose(linestyle)[styleId], transpose(fillcolor)[styleId], transpose(fillstyle)[styleId]);
+		cont->setStyle(transpose(linecolor)[styleId], transpose(linestyle)[styleId], transpose(fillcolor)[styleId], transpose(fillstyle)[i]);
 		m_contours[i] = cont;
 		m_contours_computed[i] = true;
 	}

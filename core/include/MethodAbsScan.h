@@ -65,6 +65,7 @@ class MethodAbsScan
 		inline TH2F*                    getHchisq2d(){return hChi2min2d;};
 		inline int                      getLineColor(){return lineColor;};
 		inline int                      getLineStyle(){return lineStyle;};
+		inline int                      getFillStyle(){return fillStyle;};
 		inline TString                  getMethodName() const {return methodName;};
 		inline TString                  getName() const {return name;};
 		inline int                      getNObservables(){return w->set(obsName)->getSize();}
@@ -113,10 +114,13 @@ class MethodAbsScan
 		inline void                     setLineColor(int c){lineColor = c;};
 		inline void                     setLineStyle(int c){lineStyle = c;};
 		inline void                     setTextColor(int c){textColor = c;};
+		inline void                     setFillStyle(int c){fillStyle = c;};
 		inline void                     setTitle(TString s){title = s;};
 		void                            setChi2minGlobal(double x);
 		void                            setSolutions(vector<RooSlimFitResult*> s);
 		inline void                     setVerbose(bool yesNo=true){verbose = yesNo;};
+    inline void                     setHCL( TH1F *h ) { hCL = h; };
+    inline void                     setHchisq( TH1F *h ) { hChi2min = h; };
 		void 							setXscanRange(float min, float max);
 		void 							setYscanRange(float min, float max);
 
@@ -128,6 +132,7 @@ class MethodAbsScan
 		vector<RooSlimFitResult*> solutions;            ///< Local minima filled by saveSolutions() and saveSolutions2d().
 		vector<CLInterval> clintervals1sigma;           ///< all 1 sigma intervals that were found by calcCLintervals()
 		vector<CLInterval> clintervals2sigma;           ///< all 2 sigma intervals that were found by calcCLintervals()
+		vector<CLInterval> clintervals3sigma;           ///< all 3 sigma intervals that were found by calcCLintervals()
 
 	protected:
 
@@ -140,6 +145,7 @@ class MethodAbsScan
 		TString obsName;    ///< dataset name of observables, derived from name
 		TString parsName;   ///< set name of physics parameters, derived from name
 		TString thName;     ///< set name of theory parameters, derived from name
+    TString toysName;   ///< set name of parameters to vary in toys
 		TString scanVar1;   ///< scan parameter
 		TString scanVar2;   ///< second scan parameter if we're scanning 2d
 		int nPoints1d;      ///< number of scan points used by 1d scan
@@ -163,6 +169,7 @@ class MethodAbsScan
 		int lineColor;
 		int textColor;              ///< color used for plotted central values
 		int lineStyle;
+    int fillStyle;
 		bool drawFilled;            ///< choose if Histogram is drawn filled or not
 		int drawSolution;           ///< Configure how to draw solutions on the plots.
 		///< 0=don't plot, 1=plot at central value (1d) or markers (2d)

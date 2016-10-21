@@ -15,12 +15,15 @@
 #include "RooAbsPdf.h"
 #include "RooWorkspace.h"
 #include "TCanvas.h"
+#include "TPad.h"
+#include "TPaveText.h"
 #include "rdtsc.h"
 #include "TMatrixDSym.h"
 #include "RooRealVar.h"
 #include "RooFitResult.h"
 #include "RooSlimFitResult.h"
 #include "RooDataSet.h"
+#include "RooRandom.h"
 #include "RooMinuit.h"
 #include "TTree.h"
 #include "TMatrixDSymEigen.h"
@@ -53,6 +56,9 @@ namespace Utils
 		float max;
 	};
 
+  // drawing HFAG label
+  void HFAGLabel(const TString& label="please set label", Double_t xpos=0, Double_t ypos=0, Double_t scale=1);
+
 	enum          histogramType { kChi2, kPvalue };
 	inline double sq(double x){return x*x;}
 	inline double RadToDeg(double rad){return rad/TMath::Pi()*180.;}
@@ -77,6 +83,8 @@ namespace Utils
 
 	void mergeNamedSets(RooWorkspace *w, TString mergedSet, TString set1, TString set2);
 	void randomizeParameters(RooWorkspace* w, TString setname);
+	void randomizeParametersGaussian(RooWorkspace* w, TString setname, RooSlimFitResult *r);
+	void randomizeParametersUniform(RooWorkspace* w, TString setname, RooSlimFitResult *r, double sigmaRange);
 	void setParameters(const RooAbsCollection* setMe, const RooAbsCollection* values);
 	void setParameters(RooWorkspace* w, TString parname, const RooAbsCollection* set);
 	void setParameters(RooWorkspace* w, TString parname, RooFitResult* r, bool constAndFloat=false);
