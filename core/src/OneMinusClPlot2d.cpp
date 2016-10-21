@@ -179,11 +179,31 @@
 	makeNewPlotStyle("#e6ab02"); // goldenrod
 	makeNewPlotStyle("#a6761d"); // chocolate
 	makeNewPlotStyle("#e31a1c"); // red
-  makeNewPlotStyle("#984ea3"); // darkish purple
+    makeNewPlotStyle("#984ea3"); // darkish purple
 	makeNewPlotStyle("",kBlue-5); // same as 1D scan 1
 	makeNewPlotStyle("",kGreen-8); // same as 1D scan 2
 
-	// if requested, remove any fill pattern to make cleaner plots
+    makeNewPlotStyle("#9e9ac8"); // shades of purple
+    makeNewPlotStyle("#807dba"); 
+    makeNewPlotStyle("#6a51a3");
+
+    makeNewPlotStyle("#fb6a4a"); // shades of red
+    makeNewPlotStyle("#ef3b2c");
+    makeNewPlotStyle("#cb181d");
+
+    makeNewPlotStyle("#a1d99b"); // shades of green
+    makeNewPlotStyle("#41ab5d");
+    makeNewPlotStyle("#238b45");
+
+    makeNewPlotStyle("#ffeda0"); // shades of orange
+    makeNewPlotStyle("#fed976");
+    makeNewPlotStyle("#feb24c");
+
+    makeNewPlotStyle("#6baed6"); // shades of blue
+    makeNewPlotStyle("#4292c6");
+    makeNewPlotStyle("#2171b5");
+
+    // if requested, remove any fill pattern to make cleaner plots
 	if ( arg->isQuickhack(10) ){
 		for ( int iScanners=0; iScanners<fillstyle.size(); iScanners++ ){
 			for ( int iContours=0; iContours<fillstyle[iScanners].size(); iContours++ ){

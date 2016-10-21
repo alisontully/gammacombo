@@ -16,8 +16,9 @@ SET( COMBINER_MODULES
   #gammacombo
   #hfag
   #belle2
-  #belle2_Vub
-  #Vub_Vcb
+  belle2_Vub
+  Vub_Vcb
+  Rd_Rdst
   #bsmumu
 )
 
